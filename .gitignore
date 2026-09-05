@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+*.xcodeproj
+.DS_Store
+
+# Rendered output — regenerate with `shotkit render`
+**/out/
+**/contact-sheet.png

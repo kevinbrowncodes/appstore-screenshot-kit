@@ -1,0 +1,76 @@
+{
+  "app": "Ten BII Pro",
+  "devices": [
+    "iphone-6.9",
+    "ipad-13"
+  ],
+  "output": "out",
+  "theme": {
+    "background": {
+      "colors": [
+        "#0B1626",
+        "#1B3050"
+      ],
+      "angle": 160,
+      "glow": "#F28C2838"
+    },
+    "caption": {
+      "color": "#FFFFFF",
+      "accent": "#F5A94A",
+      "subColor": "#FFFFFFB8",
+      "font": "system",
+      "weight": "bold"
+    },
+    "frame": {
+      "color": "#0A0A0C",
+      "highlight": "#FFFFFF33",
+      "shadow": true
+    }
+  },
+  "shots": [
+    {
+      "id": "mortgage",
+      "layout": "caption-top",
+      "caption": "The 10bII+ **you already know**",
+      "subcaption": "Same keys. Same shifts. Same answers — verified.",
+      "captionOverrides": {
+        "ipad-13": "Buy once. **iPhone and iPad.**"
+      },
+      "subcaptionOverrides": {
+        "ipad-13": "Universal — one purchase, both devices"
+      },
+      "source": {
+        "iphone-6.9": "raw/iphone/01-mortgage.png",
+        "ipad-13": "raw/ipad/01-mortgage.png"
+      }
+    },
+    {
+      "id": "npv",
+      "layout": "caption-top",
+      "caption": "NPV & IRR on\n**uneven cash flows**",
+      "subcaption": "CF0 plus 44 groups, each with repeat counts",
+      "source": {
+        "iphone-6.9": "raw/iphone/02-npv.png",
+        "ipad-13": "raw/ipad/02-npv.png"
+      }
+    },
+    {
+      "id": "amort",
+      "layout": "caption-top",
+      "caption": "Full **amortization** schedules",
+      "subcaption": "Principal, interest, and balance for any range",
+      "source": {
+        "iphone-6.9": "raw/iphone/03-amort.png"
+      }
+    },
+    {
+      "id": "stats",
+      "layout": "caption-top",
+      "caption": "Six regressions, **plus Best Fit**",
+      "subcaption": "Two-variable statistics with a full data editor",
+      "source": {
+        "iphone-6.9": "raw/iphone/04-stats.png"
+      }
+    }
+  ]
+}
