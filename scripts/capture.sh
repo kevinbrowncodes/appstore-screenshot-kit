@@ -2,7 +2,7 @@
 #
 # capture.sh — one reproducible simulator screenshot at exact device pixels.
 #
-#   capture.sh --sim "iPhone 17 Pro Max" --bundle-id com.example.app --out raw/iphone/01-hero.png \
+#   capture.sh --sim "iPhone 17 Pro Max"|<UDID> --bundle-id com.example.app --out raw/iphone/01-hero.png \
 #              [--app /path/To.app] [--env KEY=VALUE ...] [--wait 2.5] [--time 9:41] [--no-launch]
 #
 # Boots the simulator if needed, sets the Apple-style status bar (9:41, full
@@ -40,7 +40,7 @@ udid_for() {  # $1 = name, $2 = optional state filter
   xcrun simctl list devices available | grep -F "$1 (" | { [[ -n "${2:-}" ]] && grep -F "($2)" || cat; } \
     | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/'
 }
-UDID="$(udid_for "$SIM" Booted || true)"
+if [[ "$SIM" =~ ^[0-9A-Fa-f-]{36}$ ]]; then UDID="$SIM"; else UDID="$(udid_for "$SIM" Booted || true)"; fi
 [[ -n "$UDID" ]] || UDID="$(udid_for "$SIM" || true)"
 [[ -n "$UDID" ]] || { echo "No simulator named '$SIM'. See: xcrun simctl list devices available" >&2; exit 1; }
 

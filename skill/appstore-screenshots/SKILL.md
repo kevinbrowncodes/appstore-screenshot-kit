@@ -45,7 +45,9 @@ SHOTKIT="$KIT/.build/release/shotkit"
   `xcrun simctl list devices available`.
 - **Reproducibility over hand-tapping.** Prefer a DEBUG-only launch-environment
   hook in the app that drives the UI into the state (Ten BII Pro's `DEMO_KEYS`
-  replays a key sequence; see `Support/DemoKeystrokes.swift` there). If the
+  replays a key sequence — **one token per key press**, so `360` is `3 6 0`
+  and `6.5` is `6 . 5`; `o:`/`b:` prefix the orange/blue shift; see
+  `Support/DemoKeystrokes.swift` there). If the
   app has none, add one, compiled out of release. Record the exact
   environment for each shot in the spec directory's README so the set can be
   regenerated next release.
@@ -57,10 +59,11 @@ xcodebuild -scheme <Scheme> -configuration Debug \
 APP="$(xcodebuild -scheme <Scheme> -configuration Debug -sdk iphonesimulator \
   -showBuildSettings 2>/dev/null | awk '/ BUILT_PRODUCTS_DIR/{print $3}')/<Name>.app"
 "$KIT/scripts/capture.sh" --sim "iPhone 17 Pro Max" --bundle-id <bundle.id> --app "$APP" \
-  --env DEMO_KEYS="360 N 6.5 I/YR 400000 PV 0 FV PMT" --out raw/iphone/01-hero.png
+  --env DEMO_KEYS="3 6 0 N 6 . 5 I/YR 4 0 0 0 0 0 PV 0 FV PMT" --out raw/iphone/01-hero.png
 ```
 
-  `capture.sh` sets the Apple-style status bar (9:41, full battery, Wi-Fi) and
+  `--sim` also accepts a simulator UDID (use one when several simulators share a
+  name across runtimes). `capture.sh` sets the Apple-style status bar (9:41, full battery, Wi-Fi) and
   captures at exact device pixels.
 - **Read every raw capture before compositing.** Wrong state, keyboard up,
   empty display, debug overlay, wrong device size → recapture. The compositor
