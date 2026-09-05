@@ -7,16 +7,9 @@ on screen.
 `shots.json` is the source of truth; `raw/` holds the simulator captures;
 `out/<device>/` holds the files to upload, numbered in upload order.
 
-Layout is `callout`: the LCD band (measured from the raws) is lifted into a
-88 %-wide card over the device (a subtle ~1.1× lift), and `frame.scaleByDevice`
-is tuned so the card's bottom edge lands on the gap between key row 1's labels
-and its keys.
-
-```bash
-shotkit render  examples/ten-bii-pro/shots.json
-shotkit contact examples/ten-bii-pro/out      # review sheet (not committed)
-shotkit verify  examples/ten-bii-pro/out
-```
+Layout is `caption-top` (the device's own display, keypad running off the
+bottom). The `callout` layout was tried on this set and rejected as too loud
+for a calculator whose display is already the top of the screen.
 
 ## Shot list
 

@@ -24,28 +24,7 @@
     "frame": {
       "color": "#0A0A0C",
       "highlight": "#FFFFFF33",
-      "shadow": true,
-      "scaleByDevice": {
-        "iphone-6.9": 0.8351,
-        "ipad-13": 0.8435
-      }
-    },
-    "zoom": {
-      "iphone-6.9": {
-        "x": 0,
-        "y": 0.0994,
-        "w": 1,
-        "h": 0.1757
-      },
-      "ipad-13": {
-        "x": 0,
-        "y": 0.0472,
-        "w": 1,
-        "h": 0.1842
-      }
-    },
-    "card": {
-      "scale": 0.88
+      "shadow": true
     }
   },
   "shots": [
@@ -63,7 +42,7 @@
         "iphone-6.9": "raw/iphone/01-mortgage.png",
         "ipad-13": "raw/ipad/01-mortgage.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     },
     {
       "id": "proof",
@@ -73,7 +52,7 @@
         "iphone-6.9": "raw/iphone/02-proof.png",
         "ipad-13": "raw/ipad/02-proof.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     },
     {
       "id": "npv",
@@ -83,7 +62,7 @@
         "iphone-6.9": "raw/iphone/03-npv.png",
         "ipad-13": "raw/ipad/03-npv.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     },
     {
       "id": "amort",
@@ -92,7 +71,7 @@
       "source": {
         "iphone-6.9": "raw/iphone/04-amort.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     },
     {
       "id": "regr",
@@ -101,7 +80,7 @@
       "source": {
         "iphone-6.9": "raw/iphone/05-regr.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     },
     {
       "id": "bonds",
@@ -110,7 +89,7 @@
       "source": {
         "iphone-6.9": "raw/iphone/06-bonds.png"
       },
-      "layout": "callout"
+      "layout": "caption-top"
     }
   ]
 }
