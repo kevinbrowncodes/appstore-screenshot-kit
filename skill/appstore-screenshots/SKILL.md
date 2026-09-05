@@ -79,6 +79,14 @@ APP="$(xcodebuild -scheme <Scheme> -configuration Debug -sdk iphonesimulator \
 - Theme from the app, not from taste: background dark for dark UIs, light for
   light UIs; `accent` = the app's accent color (check `Assets.xcassets` and the
   key UI colors in the capture); one theme across the whole set.
+- **Pick the layout by where the story is.** If it's the whole screen, use
+  `caption-top`. If it lives in one region — a readout, a result row, a chart,
+  a badge — use `callout` with a `zoom` region *measured* from the raw
+  (Pillow bounding-box of the region's color, or Preview's selection
+  readout), as fractions. At search-result size (~115pt wide) an embedded
+  detail is unreadable; a callout isolates it. Bitmaps can't be enlarged past
+  the raw without blurring, so the callout's gain is isolation and contrast,
+  and the captions (vector) carry the rest — keep them ≤ 4 words per line.
 - Use `\n` in a caption to control wrapping. Never let an accent phrase split
   across lines. Per-device caption overrides exist for the iPad hero (a
   "buy once, both devices" message earns its place there).
@@ -95,7 +103,9 @@ Then **Read the contact sheet and each hero at full resolution** and check,
 in this order: caption ≤ 2 lines and accent phrase unbroken · device top edge
 at the same y in every shot (the uniform band does this; if one shot differs,
 its caption is too long) · nothing that matters cropped by the bottom edge ·
-status bar reads 9:41 with a full battery · caption/background contrast ·
+status bar reads 9:41 with a full battery · a callout card covers exactly its
+region on the device (no half-hidden digits peeking out) · caption/background
+contrast ·
 typos · each caption is literally true in its shot. Fix the spec, re-render;
 never touch the PNGs.
 

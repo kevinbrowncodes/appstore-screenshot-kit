@@ -21,24 +21,30 @@ Paths are relative to the spec file. Every field except `shots[].id`,
       "subColor": "#FFFFFFB8",          // subcaption color (8-digit hex = with alpha)
       "font": "system",                 // "system" (SF Pro) | "system-rounded" | "system-serif" | any installed family
       "weight": "bold",                 // black | heavy | bold | semibold | medium | regular | light
-      "size": 0.068,                    // title size as a fraction of canvas width; default 0.068 phone / 0.052 pad
+      "size": 0.078,                    // title size as a fraction of canvas width; default 0.078 phone / 0.058 pad
       "align": "center",                // center | left
-      "maxLines": 3,                    // title auto-shrinks (to 60%) until it fits this many lines
+      "maxLines": 2,                    // title auto-shrinks (to 60%) until it fits this many lines
       "band": "uniform"                 // uniform = reserve the tallest caption's height on every shot
                                         //           so the device sits at the same y across the set; or "fit"
+    },
+    "zoom": {                           // callout crop per device id ("default" = any), fractions of the raw
+      "iphone-6.9": { "x": 0, "y": 0.0994, "w": 1, "h": 0.1757 },
+      "ipad-13":    { "x": 0, "y": 0.0472, "w": 1, "h": 0.1842 }
     },
     "frame": {
       "color": "#0A0A0C",               // device body color
       "highlight": "#FFFFFF33",         // hairline along the bezel edge
       "shadow": true,
-      "scale": 0.88                     // frame width as a fraction of canvas width; default 0.88 phone / 0.86 pad
+      "scale": 0.88,                    // frame width as a fraction of canvas width; default 0.88 phone / 0.86 pad / 0.76 callout
+      "scaleByDevice": { "ipad-13": 0.66 }  // per-device frame width; wins over `scale`. For callout, tune it so the
+                                        // card's bottom edge lands on a seam in the UI beneath (a row gap), not through content
     }
   },
 
   "shots": [
     {
       "id": "mortgage",                 // unique; becomes part of the filename
-      "layout": "caption-top",          // caption-top (default) | caption-bottom | full | tilt
+      "layout": "callout",              // caption-top (default) | caption-bottom | full | tilt | callout
       "caption": "The 10bII+ **you already know**",   // **…** = accent color; "\n" forces a line break
       "subcaption": "Same keys. Same shifts. Same answers — verified.",
       "captionOverrides":    { "ipad-13": "Buy once. **iPhone and iPad.**" },  // per-device text
@@ -48,6 +54,7 @@ Paths are relative to the spec file. Every field except `shots[].id`,
         "ipad-13":    "raw/ipad/01-mortgage.png"
       },
       "background": { "colors": ["#1A1A2E", "#16213E"] },  // per-shot override of any background field
+      "zoom": { "default": { "x": 0, "y": 0.1, "w": 1, "h": 0.18 } },  // per-shot callout crop override
       "frameScale": 0.9,                // per-shot frame width override
       "captionSize": 0.075              // per-shot title size override
     }
@@ -63,6 +70,7 @@ Paths are relative to the spec file. Every field except `shots[].id`,
 | `caption-bottom` | Device runs off the top edge; caption at the bottom.                         | A shot whose point is at the bottom of the screen |
 | `full`           | Entire device visible below the caption, scaled to fit.                      | Hero when the whole UI matters |
 | `tilt`           | Like `full`, device rotated −6° with shadow.                                 | One shot per set, at most  |
+| `callout`        | The `zoom` region of the capture enlarged into a card (94% width) floating over the device, which sits behind at 76% so its head (status bar) shows above the card and the keypad/body below. | Apps whose story lives in one small region — a readout, a result row, a chart. Measure `zoom` from the raw; don't eyeball it. |
 
 ## CLI
 

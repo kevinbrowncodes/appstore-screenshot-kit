@@ -68,7 +68,11 @@ plans the captions with you before anything is captured.
 
 `**bold**` marks the accent phrase; `\n` forces a line break; every field is
 documented in [spec-reference.md](skill/appstore-screenshots/references/spec-reference.md).
-Layouts: `caption-top` (default), `caption-bottom`, `full`, `tilt`.
+Layouts: `caption-top` (default), `caption-bottom`, `full`, `tilt`, and
+`callout` — a measured `zoom` region of the capture enlarged into a card that
+floats over the device, for apps whose story lives in one small area of the
+screen (a readout, a result, a chart) that would otherwise be unreadable at
+search-result size.
 
 Two things the compositor does that matter more than they sound:
 

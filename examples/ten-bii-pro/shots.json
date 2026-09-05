@@ -1,50 +1,113 @@
 {
   "app": "Ten BII Pro",
-  "devices": ["iphone-6.9", "ipad-13"],
+  "devices": [
+    "iphone-6.9",
+    "ipad-13"
+  ],
   "output": "out",
   "theme": {
-    "background": { "colors": ["#0B1626", "#1B3050"], "angle": 160, "glow": "#F28C2838" },
-    "caption":    { "color": "#FFFFFF", "accent": "#F5A94A", "subColor": "#FFFFFFB8", "font": "system", "weight": "bold" },
-    "frame":      { "color": "#0A0A0C", "highlight": "#FFFFFF33", "shadow": true }
+    "background": {
+      "colors": [
+        "#0B1626",
+        "#1B3050"
+      ],
+      "angle": 160,
+      "glow": "#F28C2838"
+    },
+    "caption": {
+      "color": "#FFFFFF",
+      "accent": "#F5A94A",
+      "subColor": "#FFFFFFB8",
+      "font": "system",
+      "weight": "bold"
+    },
+    "frame": {
+      "color": "#0A0A0C",
+      "highlight": "#FFFFFF33",
+      "shadow": true,
+      "scaleByDevice": {
+        "iphone-6.9": 0.6821,
+        "ipad-13": 0.6758
+      }
+    },
+    "zoom": {
+      "iphone-6.9": {
+        "x": 0,
+        "y": 0.0994,
+        "w": 1,
+        "h": 0.1757
+      },
+      "ipad-13": {
+        "x": 0,
+        "y": 0.0472,
+        "w": 1,
+        "h": 0.1842
+      }
+    }
   },
   "shots": [
     {
       "id": "mortgage",
-      "caption": "The 10bII+ **you already know**",
+      "caption": "The 10bII+\n**you already know**",
       "subcaption": "Same keys. Same shifts. Same answers — verified.",
-      "captionOverrides":    { "ipad-13": "Buy once. **iPhone and iPad.**" },
-      "subcaptionOverrides": { "ipad-13": "Universal — one purchase, both devices" },
-      "source": { "iphone-6.9": "raw/iphone/01-mortgage.png", "ipad-13": "raw/ipad/01-mortgage.png" }
+      "captionOverrides": {
+        "ipad-13": "Buy once.\n**iPhone and iPad.**"
+      },
+      "subcaptionOverrides": {
+        "ipad-13": "Universal — one purchase, both devices"
+      },
+      "source": {
+        "iphone-6.9": "raw/iphone/01-mortgage.png",
+        "ipad-13": "raw/ipad/01-mortgage.png"
+      },
+      "layout": "callout"
     },
     {
       "id": "proof",
       "caption": "Manual says 133,006.39.\n**So does this.**",
-      "subcaption": "Every one of the manual's 214 worked examples, tested.",
-      "source": { "iphone-6.9": "raw/iphone/02-proof.png", "ipad-13": "raw/ipad/02-proof.png" }
+      "subcaption": "214 manual examples. Every one tested.",
+      "source": {
+        "iphone-6.9": "raw/iphone/02-proof.png",
+        "ipad-13": "raw/ipad/02-proof.png"
+      },
+      "layout": "callout"
     },
     {
       "id": "npv",
       "caption": "NPV & IRR on\n**uneven cash flows**",
       "subcaption": "CF0 plus 44 groups, each with repeat counts",
-      "source": { "iphone-6.9": "raw/iphone/03-npv.png", "ipad-13": "raw/ipad/03-npv.png" }
+      "source": {
+        "iphone-6.9": "raw/iphone/03-npv.png",
+        "ipad-13": "raw/ipad/03-npv.png"
+      },
+      "layout": "callout"
     },
     {
       "id": "amort",
-      "caption": "Full **amortization** schedules",
+      "caption": "Full **amortization**\nschedules",
       "subcaption": "Principal, interest, and balance for any range",
-      "source": { "iphone-6.9": "raw/iphone/04-amort.png" }
+      "source": {
+        "iphone-6.9": "raw/iphone/04-amort.png"
+      },
+      "layout": "callout"
     },
     {
       "id": "regr",
-      "caption": "Six regressions, **plus Best Fit**",
+      "caption": "Six regressions,\n**plus Best Fit**",
       "subcaption": "Two-variable statistics with a full data editor",
-      "source": { "iphone-6.9": "raw/iphone/05-regr.png" }
+      "source": {
+        "iphone-6.9": "raw/iphone/05-regr.png"
+      },
+      "layout": "callout"
     },
     {
       "id": "bonds",
-      "caption": "Bond price, YTM, **yield to call**",
+      "caption": "Bond price, YTM,\n**yield to call**",
       "subcaption": "Actual/actual or 30/360, annual or semiannual",
-      "source": { "iphone-6.9": "raw/iphone/06-bonds.png" }
+      "source": {
+        "iphone-6.9": "raw/iphone/06-bonds.png"
+      },
+      "layout": "callout"
     }
   ]
 }

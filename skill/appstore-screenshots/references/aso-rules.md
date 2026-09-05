@@ -51,6 +51,10 @@ Name it in one sentence before drafting captions. Then:
 - Keep the device at the same position in every shot (the kit's uniform
   caption band does this). A set that "jumps" while swiping reads as
   amateur.
+- If every shot shows the same chrome (a keypad, a map, a table) and the
+  difference between shots is one small region, the set reads as "the same
+  picture six times" at thumbnail size. Use `callout` to lift that region
+  into its own card; the chrome becomes context instead of the subject.
 - Use `full` or `tilt` for one shot at most, usually the hero, never the
   whole set.
 - Background from the app's palette. A dark, slightly gradient background

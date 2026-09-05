@@ -7,6 +7,10 @@ on screen.
 `shots.json` is the source of truth; `raw/` holds the simulator captures;
 `out/<device>/` holds the files to upload, numbered in upload order.
 
+Layout is `callout`: the LCD band (measured from the raws) is lifted into a
+card over the device, and `frame.scaleByDevice` is tuned so the card's bottom
+edge lands on the gap between key rows 1 and 2.
+
 ```bash
 shotkit render  examples/ten-bii-pro/shots.json
 shotkit contact examples/ten-bii-pro/out      # review sheet (not committed)

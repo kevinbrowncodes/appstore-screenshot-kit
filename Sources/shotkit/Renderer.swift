@@ -148,6 +148,31 @@ final class Canvas {
     }
 }
 
+extension Canvas {
+    /// A cropped region of the capture, enlarged into a floating card.
+    func drawCallout(_ image: CGImage, crop: CGRect, in rect: CGRect, style: FrameStyle) {
+        guard let sub = image.cropping(to: crop) else { return }
+        let radius = rect.width * 0.035
+        cg.saveGState()
+        cg.setShadow(offset: CGSize(width: 0, height: -rect.width * 0.03), blur: rect.width * 0.09,
+                     color: CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 0.6))
+        cg.addPath(roundedPath(rect, radius))
+        cg.setFillColor(style.color)
+        cg.fillPath()
+        cg.restoreGState()
+        cg.saveGState()
+        cg.addPath(roundedPath(rect, radius))
+        cg.clip()
+        drawImage(sub, in: rect)
+        cg.restoreGState()
+        let lw = max(2, rect.width * 0.003)
+        cg.addPath(roundedPath(rect.insetBy(dx: lw / 2, dy: lw / 2), radius - lw / 2))
+        cg.setStrokeColor(style.highlight)
+        cg.setLineWidth(lw)
+        cg.strokePath()
+    }
+}
+
 // MARK: - Device frame geometry
 
 struct FrameGeometry {
@@ -311,12 +336,14 @@ struct Placement {
     let captionRect: CGRect
     let frame: FrameGeometry
     let rotation: CGFloat
+    var card: CGRect? = nil
 }
 
 enum Layout {
     static func place(_ kind: LayoutKind, canvas W: CGFloat, _ H: CGFloat, device: Device,
-                      captionHeight: CGFloat, frameFraction: CGFloat, aspect: CGFloat) -> Placement {
-        let padTop = H * 0.07
+                      captionHeight: CGFloat, frameFraction: CGFloat, aspect: CGFloat,
+                      zoom: Zoom? = nil) -> Placement {
+        let padTop = H * 0.055
         let padSide = W * 0.07
         let padBottom = H * 0.06
         let gap = H * 0.035
@@ -349,6 +376,23 @@ enum Layout {
             let g = FrameGeometry.make(kind: device.kind, frameWidth: fw,
                                        top: availTop + (availH - fh) / 2, centerX: W / 2, aspect: aspect)
             return Placement(captionRect: cap, frame: g, rotation: kind == .tilt ? -6 * .pi / 180 : 0)
+
+        case .callout:
+            // Card = the zoom region at 94% canvas width. The device sits
+            // behind it, positioned so the card covers exactly that region on
+            // the device's own screen (its head — status bar — shows above).
+            let z = zoom ?? Zoom(x: 0, y: 0, w: 1, h: 0.2)
+            let cap = CGRect(x: padSide, y: padTop, width: textW, height: captionHeight)
+            let cardW = W * 0.94
+            let cardH = cardW * (z.h / z.w) * aspect
+            let g0 = FrameGeometry.make(kind: device.kind, frameWidth: W * frameFraction,
+                                        top: 0, centerX: W / 2, aspect: aspect)
+            let head = (g0.screen.minY - g0.outer.minY) + z.y * g0.screen.height
+            let frameTop = cap.maxY + gap
+            let g = FrameGeometry.make(kind: device.kind, frameWidth: W * frameFraction,
+                                       top: frameTop, centerX: W / 2, aspect: aspect)
+            let card = CGRect(x: (W - cardW) / 2, y: frameTop + head, width: cardW, height: cardH)
+            return Placement(captionRect: cap, frame: g, rotation: 0, card: card)
         }
     }
 }
@@ -380,7 +424,7 @@ struct Renderer {
     /// uniform band across the set before anything is rendered.
     func captionBlock(for shot: Shot, on device: Device) -> CaptionBlock {
         let W = CGFloat(device.width)
-        let baseSize = (shot.captionSize ?? spec.theme.caption.size ?? (device.kind == .phone ? 0.068 : 0.052)) * W
+        let baseSize = (shot.captionSize ?? spec.theme.caption.size ?? (device.kind == .phone ? 0.078 : 0.058)) * W
         return CaptionBuilder(style: spec.theme.caption).build(
             title: shot.caption(for: device.id), subtitle: shot.subcaption(for: device.id),
             baseSize: baseSize, width: W - 2 * W * 0.07)
@@ -407,15 +451,26 @@ struct Renderer {
 
         let block = captionBlock(for: shot, on: device)
 
-        let frameFraction = shot.frameScale ?? spec.theme.frame.scale ?? (device.kind == .phone ? 0.88 : 0.86)
+        let zoom = shot.zoom[device.id] ?? shot.zoom["default"] ?? spec.theme.zoom[device.id] ?? spec.theme.zoom["default"]
+        if shot.layout == .callout, zoom == nil {
+            throw ShotError.message("Shot \"\(shot.id)\" uses the callout layout but no zoom region is set for \(device.id) (theme.zoom or shot.zoom)")
+        }
+        let frameFraction = shot.frameScale ?? spec.theme.frame.scale(for: device.id)
+            ?? (shot.layout == .callout ? 0.76 : (device.kind == .phone ? 0.88 : 0.86))
         let p = Layout.place(shot.layout, canvas: W, H, device: device, captionHeight: max(block.height, captionBand ?? 0),
-                             frameFraction: frameFraction, aspect: imgAspect)
+                             frameFraction: frameFraction, aspect: imgAspect, zoom: zoom)
 
         if let glow = bg.glow {
-            canvas.drawGlow(center: CGPoint(x: p.frame.outer.midX, y: p.frame.outer.minY + p.frame.outer.width * 0.45),
+            let focus = p.card ?? p.frame.outer
+            canvas.drawGlow(center: CGPoint(x: focus.midX, y: p.card == nil ? focus.minY + focus.width * 0.45 : focus.midY),
                             radius: W * 0.85, color: glow)
         }
         canvas.drawDevice(image, geometry: p.frame, style: spec.theme.frame, rotation: p.rotation)
+        if let card = p.card, let z = zoom {
+            let crop = CGRect(x: z.x * CGFloat(image.width), y: z.y * CGFloat(image.height),
+                              width: z.w * CGFloat(image.width), height: z.h * CGFloat(image.height))
+            canvas.drawCallout(image, crop: crop, in: card, style: spec.theme.frame)
+        }
         block.draw(in: p.captionRect, on: canvas)
 
         let dir = spec.outputDir.appendingPathComponent(device.id)

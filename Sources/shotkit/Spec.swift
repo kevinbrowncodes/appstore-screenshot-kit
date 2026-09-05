@@ -66,6 +66,8 @@ struct ThemeFile: Codable {
     var background: BackgroundFile?
     var caption: CaptionFile?
     var frame: FrameFile?
+    /// Callout crop per device id ("default" applies to any device).
+    var zoom: [String: ZoomFile]?
 }
 
 struct BackgroundFile: Codable {
@@ -86,11 +88,21 @@ struct CaptionFile: Codable {
     var band: String?
 }
 
+/// A region of the raw capture, as fractions of its width/height.
+struct ZoomFile: Codable {
+    var x: Double
+    var y: Double
+    var w: Double
+    var h: Double
+}
+
 struct FrameFile: Codable {
     var color: String?
     var highlight: String?
     var shadow: Bool?
     var scale: Double?
+    /// Per-device frame width, e.g. {"ipad-13": 0.66}; wins over `scale`.
+    var scaleByDevice: [String: Double]?
 }
 
 struct ShotFile: Codable {
@@ -104,6 +116,7 @@ struct ShotFile: Codable {
     var background: BackgroundFile?
     var frameScale: Double?
     var captionSize: Double?
+    var zoom: [String: ZoomFile]?
 }
 
 // MARK: - Resolved spec
@@ -113,6 +126,28 @@ enum LayoutKind: String, CaseIterable {
     case captionBottom = "caption-bottom"
     case full
     case tilt
+    /// The `zoom` region of the capture, enlarged into a card that floats
+    /// over the device — for apps whose story lives in one small area.
+    case callout
+}
+
+struct Zoom {
+    var x: CGFloat
+    var y: CGFloat
+    var w: CGFloat
+    var h: CGFloat
+
+    static func resolve(_ f: [String: ZoomFile]?) throws -> [String: Zoom] {
+        var out: [String: Zoom] = [:]
+        for (k, z) in f ?? [:] {
+            guard (0...1).contains(z.x), (0...1).contains(z.y), z.w > 0, z.h > 0,
+                  z.x + z.w <= 1.0001, z.y + z.h <= 1.0001 else {
+                throw ShotError.message("zoom \"\(k)\" must be fractions of the capture with x+w and y+h ≤ 1")
+            }
+            out[k] = Zoom(x: z.x, y: z.y, w: z.w, h: z.h)
+        }
+        return out
+    }
 }
 
 struct Background {
@@ -140,12 +175,16 @@ struct FrameStyle {
     var highlight: CGColor
     var shadow: Bool
     var scale: CGFloat?
+    var scaleByDevice: [String: CGFloat]
+
+    func scale(for deviceID: String) -> CGFloat? { scaleByDevice[deviceID] ?? scale }
 }
 
 struct Theme {
     var background: Background
     var caption: CaptionStyle
     var frame: FrameStyle
+    var zoom: [String: Zoom]
 }
 
 struct Shot {
@@ -160,6 +199,7 @@ struct Shot {
     var background: Background?
     var frameScale: CGFloat?
     var captionSize: CGFloat?
+    var zoom: [String: Zoom]
 
     func caption(for deviceID: String) -> String { captionOverrides[deviceID] ?? caption }
     func subcaption(for deviceID: String) -> String? { subcaptionOverrides[deviceID] ?? subcaption }
@@ -213,7 +253,8 @@ struct Spec {
                 subcaptionOverrides: s.subcaptionOverrides ?? [:],
                 background: try s.background.map { try Background.resolve($0, fallback: theme.background) },
                 frameScale: s.frameScale.map { CGFloat($0) },
-                captionSize: s.captionSize.map { CGFloat($0) }
+                captionSize: s.captionSize.map { CGFloat($0) },
+                zoom: try Zoom.resolve(s.zoom)
             )
         }
 
@@ -249,15 +290,17 @@ extension Theme {
                 weight: f?.caption?.weight ?? "bold",
                 size: f?.caption?.size.map { CGFloat($0) },
                 align: f?.caption?.align ?? "center",
-                maxLines: f?.caption?.maxLines ?? 3,
+                maxLines: f?.caption?.maxLines ?? 2,
                 band: f?.caption?.band ?? "uniform"
             ),
             frame: FrameStyle(
                 color: try Color.parse(f?.frame?.color ?? "#0B0B0D"),
                 highlight: try Color.parse(f?.frame?.highlight ?? "#FFFFFF33"),
                 shadow: f?.frame?.shadow ?? true,
-                scale: f?.frame?.scale.map { CGFloat($0) }
-            )
+                scale: f?.frame?.scale.map { CGFloat($0) },
+                scaleByDevice: (f?.frame?.scaleByDevice ?? [:]).mapValues { CGFloat($0) }
+            ),
+            zoom: try Zoom.resolve(f?.zoom)
         )
     }
 }
