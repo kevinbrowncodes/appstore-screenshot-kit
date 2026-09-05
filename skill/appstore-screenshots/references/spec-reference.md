@@ -31,6 +31,7 @@ Paths are relative to the spec file. Every field except `shots[].id`,
       "iphone-6.9": { "x": 0, "y": 0.0994, "w": 1, "h": 0.1757 },
       "ipad-13":    { "x": 0, "y": 0.0472, "w": 1, "h": 0.1842 }
     },
+    "card": { "scale": 0.88, "radius": 0.035 },  // callout card width / corner radius, as fractions of canvas / card width
     "frame": {
       "color": "#0A0A0C",               // device body color
       "highlight": "#FFFFFF33",         // hairline along the bezel edge
@@ -55,6 +56,7 @@ Paths are relative to the spec file. Every field except `shots[].id`,
       },
       "background": { "colors": ["#1A1A2E", "#16213E"] },  // per-shot override of any background field
       "zoom": { "default": { "x": 0, "y": 0.1, "w": 1, "h": 0.18 } },  // per-shot callout crop override
+      "cardScale": 0.9,                 // per-shot callout card width override
       "frameScale": 0.9,                // per-shot frame width override
       "captionSize": 0.075              // per-shot title size override
     }
@@ -70,7 +72,15 @@ Paths are relative to the spec file. Every field except `shots[].id`,
 | `caption-bottom` | Device runs off the top edge; caption at the bottom.                         | A shot whose point is at the bottom of the screen |
 | `full`           | Entire device visible below the caption, scaled to fit.                      | Hero when the whole UI matters |
 | `tilt`           | Like `full`, device rotated −6° with shadow.                                 | One shot per set, at most  |
-| `callout`        | The `zoom` region of the capture enlarged into a card (94% width) floating over the device, which sits behind at 76% so its head (status bar) shows above the card and the keypad/body below. | Apps whose story lives in one small region — a readout, a result row, a chart. Measure `zoom` from the raw; don't eyeball it. |
+| `callout`        | The `zoom` region of the capture lifted into a card (`card.scale` wide) floating over the device, which sits behind so its head (status bar) shows above the card and the body below. | Apps whose story lives in one small region — a readout, a result row, a chart. Measure `zoom` from the raw; don't eyeball it. |
+
+Sizing a callout: the card's bottom edge should land on a seam in the UI
+beneath it. Card width and the seam you choose together fix the device
+width — `frame.scaleByDevice = card.scale × zoom.h ÷ (seam − zoom.y)`, all as
+fractions, then ÷ (1 − 2 × bezel) for the frame. A shallow seam (just below
+the first row under the region) with `card.scale` ≈ 0.88 gives a subtle
+~1.1× lift with a near-full-width device; a deep seam with 0.94 gives a loud
+1.4× magnifier over a small device. Start subtle.
 
 ## CLI
 

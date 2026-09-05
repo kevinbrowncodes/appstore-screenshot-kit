@@ -150,9 +150,9 @@ final class Canvas {
 
 extension Canvas {
     /// A cropped region of the capture, enlarged into a floating card.
-    func drawCallout(_ image: CGImage, crop: CGRect, in rect: CGRect, style: FrameStyle) {
+    func drawCallout(_ image: CGImage, crop: CGRect, in rect: CGRect, style: FrameStyle, radiusFraction: CGFloat = 0.035) {
         guard let sub = image.cropping(to: crop) else { return }
-        let radius = rect.width * 0.035
+        let radius = rect.width * radiusFraction
         cg.saveGState()
         cg.setShadow(offset: CGSize(width: 0, height: -rect.width * 0.03), blur: rect.width * 0.09,
                      color: CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 0.6))
@@ -342,7 +342,7 @@ struct Placement {
 enum Layout {
     static func place(_ kind: LayoutKind, canvas W: CGFloat, _ H: CGFloat, device: Device,
                       captionHeight: CGFloat, frameFraction: CGFloat, aspect: CGFloat,
-                      zoom: Zoom? = nil) -> Placement {
+                      zoom: Zoom? = nil, cardScale: CGFloat = 0.94) -> Placement {
         let padTop = H * 0.055
         let padSide = W * 0.07
         let padBottom = H * 0.06
@@ -383,7 +383,7 @@ enum Layout {
             // the device's own screen (its head — status bar — shows above).
             let z = zoom ?? Zoom(x: 0, y: 0, w: 1, h: 0.2)
             let cap = CGRect(x: padSide, y: padTop, width: textW, height: captionHeight)
-            let cardW = W * 0.94
+            let cardW = W * cardScale
             let cardH = cardW * (z.h / z.w) * aspect
             let g0 = FrameGeometry.make(kind: device.kind, frameWidth: W * frameFraction,
                                         top: 0, centerX: W / 2, aspect: aspect)
@@ -458,7 +458,8 @@ struct Renderer {
         let frameFraction = shot.frameScale ?? spec.theme.frame.scale(for: device.id)
             ?? (shot.layout == .callout ? 0.76 : (device.kind == .phone ? 0.88 : 0.86))
         let p = Layout.place(shot.layout, canvas: W, H, device: device, captionHeight: max(block.height, captionBand ?? 0),
-                             frameFraction: frameFraction, aspect: imgAspect, zoom: zoom)
+                             frameFraction: frameFraction, aspect: imgAspect, zoom: zoom,
+                             cardScale: shot.cardScale ?? spec.theme.card.scale)
 
         if let glow = bg.glow {
             let focus = p.card ?? p.frame.outer
@@ -469,7 +470,8 @@ struct Renderer {
         if let card = p.card, let z = zoom {
             let crop = CGRect(x: z.x * CGFloat(image.width), y: z.y * CGFloat(image.height),
                               width: z.w * CGFloat(image.width), height: z.h * CGFloat(image.height))
-            canvas.drawCallout(image, crop: crop, in: card, style: spec.theme.frame)
+            canvas.drawCallout(image, crop: crop, in: card, style: spec.theme.frame,
+                               radiusFraction: spec.theme.card.radius)
         }
         block.draw(in: p.captionRect, on: canvas)
 

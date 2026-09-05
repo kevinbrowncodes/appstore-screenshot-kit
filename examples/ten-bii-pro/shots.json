@@ -26,8 +26,8 @@
       "highlight": "#FFFFFF33",
       "shadow": true,
       "scaleByDevice": {
-        "iphone-6.9": 0.6821,
-        "ipad-13": 0.6758
+        "iphone-6.9": 0.8351,
+        "ipad-13": 0.8435
       }
     },
     "zoom": {
@@ -43,6 +43,9 @@
         "w": 1,
         "h": 0.1842
       }
+    },
+    "card": {
+      "scale": 0.88
     }
   },
   "shots": [

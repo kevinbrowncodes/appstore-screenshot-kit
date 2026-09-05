@@ -8,8 +8,9 @@ on screen.
 `out/<device>/` holds the files to upload, numbered in upload order.
 
 Layout is `callout`: the LCD band (measured from the raws) is lifted into a
-card over the device, and `frame.scaleByDevice` is tuned so the card's bottom
-edge lands on the gap between key rows 1 and 2.
+88 %-wide card over the device (a subtle ~1.1× lift), and `frame.scaleByDevice`
+is tuned so the card's bottom edge lands on the gap between key row 1's labels
+and its keys.
 
 ```bash
 shotkit render  examples/ten-bii-pro/shots.json

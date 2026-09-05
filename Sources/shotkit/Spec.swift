@@ -68,6 +68,13 @@ struct ThemeFile: Codable {
     var frame: FrameFile?
     /// Callout crop per device id ("default" applies to any device).
     var zoom: [String: ZoomFile]?
+    var card: CardFile?
+}
+
+/// The callout card.
+struct CardFile: Codable {
+    var scale: Double?      // card width as a fraction of canvas width (default 0.94)
+    var radius: Double?     // corner radius as a fraction of card width (default 0.035)
 }
 
 struct BackgroundFile: Codable {
@@ -117,6 +124,7 @@ struct ShotFile: Codable {
     var frameScale: Double?
     var captionSize: Double?
     var zoom: [String: ZoomFile]?
+    var cardScale: Double?
 }
 
 // MARK: - Resolved spec
@@ -180,11 +188,17 @@ struct FrameStyle {
     func scale(for deviceID: String) -> CGFloat? { scaleByDevice[deviceID] ?? scale }
 }
 
+struct CardStyle {
+    var scale: CGFloat
+    var radius: CGFloat
+}
+
 struct Theme {
     var background: Background
     var caption: CaptionStyle
     var frame: FrameStyle
     var zoom: [String: Zoom]
+    var card: CardStyle
 }
 
 struct Shot {
@@ -200,6 +214,7 @@ struct Shot {
     var frameScale: CGFloat?
     var captionSize: CGFloat?
     var zoom: [String: Zoom]
+    var cardScale: CGFloat?
 
     func caption(for deviceID: String) -> String { captionOverrides[deviceID] ?? caption }
     func subcaption(for deviceID: String) -> String? { subcaptionOverrides[deviceID] ?? subcaption }
@@ -254,7 +269,8 @@ struct Spec {
                 background: try s.background.map { try Background.resolve($0, fallback: theme.background) },
                 frameScale: s.frameScale.map { CGFloat($0) },
                 captionSize: s.captionSize.map { CGFloat($0) },
-                zoom: try Zoom.resolve(s.zoom)
+                zoom: try Zoom.resolve(s.zoom),
+                cardScale: s.cardScale.map { CGFloat($0) }
             )
         }
 
@@ -300,7 +316,8 @@ extension Theme {
                 scale: f?.frame?.scale.map { CGFloat($0) },
                 scaleByDevice: (f?.frame?.scaleByDevice ?? [:]).mapValues { CGFloat($0) }
             ),
-            zoom: try Zoom.resolve(f?.zoom)
+            zoom: try Zoom.resolve(f?.zoom),
+            card: CardStyle(scale: CGFloat(f?.card?.scale ?? 0.94), radius: CGFloat(f?.card?.radius ?? 0.035))
         )
     }
 }
