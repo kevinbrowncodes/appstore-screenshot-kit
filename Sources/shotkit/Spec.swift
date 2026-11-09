@@ -36,6 +36,9 @@ struct Device {
     // against developer.apple.com before relying on a size not marked required.
     static let all: [Device] = [
         Device(id: "iphone-6.9", name: "iPhone 6.9\" (16/17 Pro Max)", width: 1320, height: 2868, kind: .phone, required: true),
+        // iPhone Duo inner display, opened (landscape). Apple's API display
+        // type is undocumented, so these upload by hand in App Store Connect.
+        Device(id: "duo-inner", name: "iPhone Duo inner display (open)", width: 2853, height: 2007, kind: .phone, required: false),
         Device(id: "iphone-6.7", name: "iPhone 6.7\" (14/15 Plus, Pro Max)", width: 1290, height: 2796, kind: .phone, required: false),
         Device(id: "iphone-6.5", name: "iPhone 6.5\" (11 Pro Max, XS Max)", width: 1284, height: 2778, kind: .phone, required: false),
         Device(id: "iphone-6.3", name: "iPhone 6.3\" (16/17 Pro)", width: 1206, height: 2622, kind: .phone, required: false),
@@ -117,6 +120,9 @@ struct ShotFile: Codable {
     var caption: String
     var subcaption: String?
     var layout: String?
+    /// Per-device layout, e.g. a sideways iPhone shot that is plain
+    /// caption-top on iPad: {"ipad-13": "caption-top"}.
+    var layoutOverrides: [String: String]?
     var source: [String: String]
     var captionOverrides: [String: String]?
     var subcaptionOverrides: [String: String]?
@@ -137,6 +143,10 @@ enum LayoutKind: String, CaseIterable {
     /// The `zoom` region of the capture, enlarged into a card that floats
     /// over the device — for apps whose story lives in one small area.
     case callout
+    /// A landscape capture: the phone lies sideways under the caption, and
+    /// the `zoom` region (optional) is enlarged into a card below it — for
+    /// features that only exist when the device is turned.
+    case sideways
 }
 
 struct Zoom {
@@ -207,6 +217,7 @@ struct Shot {
     var caption: String
     var subcaption: String?
     var layout: LayoutKind
+    var layoutOverrides: [String: LayoutKind] = [:]
     var source: [String: URL]
     var captionOverrides: [String: String]
     var subcaptionOverrides: [String: String]
@@ -217,6 +228,7 @@ struct Shot {
     var cardScale: CGFloat?
 
     func caption(for deviceID: String) -> String { captionOverrides[deviceID] ?? caption }
+    func layout(for deviceID: String) -> LayoutKind { layoutOverrides[deviceID] ?? layout }
     func subcaption(for deviceID: String) -> String? { subcaptionOverrides[deviceID] ?? subcaption }
 
     /// Zero-padded ordinal so the files sort in upload order.
@@ -257,12 +269,20 @@ struct Spec {
             guard let layout = LayoutKind(rawValue: s.layout ?? "caption-top") else {
                 throw ShotError.message("Shot \"\(s.id)\": unknown layout \"\(s.layout!)\". Known: \(LayoutKind.allCases.map(\.rawValue).joined(separator: ", "))")
             }
+            var layoutOverrides: [String: LayoutKind] = [:]
+            for (dev, name) in s.layoutOverrides ?? [:] {
+                guard let l = LayoutKind(rawValue: name) else {
+                    throw ShotError.message("Shot \"\(s.id)\": unknown layout \"\(name)\" for \(dev)")
+                }
+                layoutOverrides[dev] = l
+            }
             var source: [String: URL] = [:]
             for (dev, path) in s.source {
                 source[dev] = URL(fileURLWithPath: path, relativeTo: base).standardizedFileURL
             }
             return Shot(
                 id: s.id, index: i, caption: s.caption, subcaption: s.subcaption, layout: layout,
+                layoutOverrides: layoutOverrides,
                 source: source,
                 captionOverrides: s.captionOverrides ?? [:],
                 subcaptionOverrides: s.subcaptionOverrides ?? [:],

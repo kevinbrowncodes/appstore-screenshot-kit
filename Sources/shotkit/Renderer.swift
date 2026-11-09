@@ -183,19 +183,26 @@ struct FrameGeometry {
 
     static func bezelFraction(_ kind: DeviceKind) -> CGFloat { kind == .phone ? 0.022 : 0.030 }
 
+    /// The bezel scales with the device's short side, so a landscape
+    /// (aspect < 1) frame keeps a portrait frame's proportions.
+    static func bezel(forWidth w: CGFloat, kind: DeviceKind, aspect: CGFloat) -> CGFloat {
+        let shortSide = aspect < 1 ? w * aspect : w
+        return shortSide * bezelFraction(kind)
+    }
+
     /// Frame height for a given frame width (linear, so scaling is exact).
     static func height(forWidth w: CGFloat, kind: DeviceKind, aspect: CGFloat) -> CGFloat {
-        let b = w * bezelFraction(kind)
+        let b = bezel(forWidth: w, kind: kind, aspect: aspect)
         return (w - 2 * b) * aspect + 2 * b
     }
 
     static func make(kind: DeviceKind, frameWidth: CGFloat, top: CGFloat, centerX: CGFloat, aspect: CGFloat) -> FrameGeometry {
-        let bezel = frameWidth * bezelFraction(kind)
+        let bezel = bezel(forWidth: frameWidth, kind: kind, aspect: aspect)
         let screenW = frameWidth - 2 * bezel
         let outer = CGRect(x: centerX - frameWidth / 2, y: top,
                            width: frameWidth, height: screenW * aspect + 2 * bezel)
         let screen = outer.insetBy(dx: bezel, dy: bezel)
-        let screenRadius = screenW * (kind == .phone ? 0.118 : 0.020)
+        let screenRadius = min(screenW, screenW * aspect) * (kind == .phone ? 0.118 : 0.020)
         return FrameGeometry(outer: outer, screen: screen,
                              outerRadius: screenRadius + bezel, screenRadius: screenRadius)
     }
@@ -393,6 +400,25 @@ enum Layout {
                                        top: frameTop, centerX: W / 2, aspect: aspect)
             let card = CGRect(x: (W - cardW) / 2, y: frameTop + head, width: cardW, height: cardH)
             return Placement(captionRect: cap, frame: g, rotation: 0, card: card)
+
+        case .sideways:
+            // Caption, then the landscape phone across the canvas, then (if a
+            // zoom region is set) that region enlarged into a card filling the
+            // space below — the phone gives context, the card is readable.
+            let cap = CGRect(x: padSide, y: padTop, width: textW, height: captionHeight)
+            let fw = W * frameFraction
+            let fh = FrameGeometry.height(forWidth: fw, kind: device.kind, aspect: aspect)
+            let g = FrameGeometry.make(kind: device.kind, frameWidth: fw,
+                                       top: cap.maxY + gap, centerX: W / 2, aspect: aspect)
+            guard let z = zoom else { return Placement(captionRect: cap, frame: g, rotation: 0) }
+            let availTop = g.outer.maxY + gap
+            let availH = H - availTop - padBottom
+            var cardW = W * cardScale
+            var cardH = cardW * (z.h / z.w) * aspect
+            if cardH > availH { cardW *= availH / cardH; cardH = availH }
+            let card = CGRect(x: (W - cardW) / 2, y: availTop + (availH - cardH) / 2, width: cardW, height: cardH)
+            _ = fh
+            return Placement(captionRect: cap, frame: g, rotation: 0, card: card)
         }
     }
 }
@@ -437,9 +463,11 @@ struct Renderer {
             throw ShotError.message("Shot \"\(shot.id)\" has no source for \(device.id)")
         }
         let image = try Images.load(srcURL)
+        let layout = shot.layout(for: device.id)
         let imgAspect = CGFloat(image.height) / CGFloat(image.width)
         let devAspect = CGFloat(device.height) / CGFloat(device.width)
-        if abs(imgAspect - devAspect) / devAspect > 0.02 {
+        let expectedAspect = layout == .sideways ? 1 / devAspect : devAspect
+        if abs(imgAspect - expectedAspect) / expectedAspect > 0.02 {
             FileHandle.standardError.write(
                 "warning: \(srcURL.lastPathComponent) is \(image.width)×\(image.height); \(device.id) expects the \(device.width)×\(device.height) aspect — the screen will look stretched\n".data(using: .utf8)!)
         }
@@ -452,12 +480,12 @@ struct Renderer {
         let block = captionBlock(for: shot, on: device)
 
         let zoom = shot.zoom[device.id] ?? shot.zoom["default"] ?? spec.theme.zoom[device.id] ?? spec.theme.zoom["default"]
-        if shot.layout == .callout, zoom == nil {
+        if layout == .callout, zoom == nil {
             throw ShotError.message("Shot \"\(shot.id)\" uses the callout layout but no zoom region is set for \(device.id) (theme.zoom or shot.zoom)")
         }
         let frameFraction = shot.frameScale ?? spec.theme.frame.scale(for: device.id)
-            ?? (shot.layout == .callout ? 0.76 : (device.kind == .phone ? 0.88 : 0.86))
-        let p = Layout.place(shot.layout, canvas: W, H, device: device, captionHeight: max(block.height, captionBand ?? 0),
+            ?? (layout == .callout ? 0.76 : layout == .sideways ? 0.92 : (device.kind == .phone ? 0.88 : 0.86))
+        let p = Layout.place(layout, canvas: W, H, device: device, captionHeight: max(block.height, captionBand ?? 0),
                              frameFraction: frameFraction, aspect: imgAspect, zoom: zoom,
                              cardScale: shot.cardScale ?? spec.theme.card.scale)
 
